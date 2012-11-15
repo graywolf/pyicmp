@@ -62,7 +62,7 @@ class Message:
 		return ~s & 0xffff
 	
 	def __repr__(self):
-		return "<Message: type: %d, code: %d, idf: %d, seq: %d>" % (self.ptype, self.code, self.identifier, self.sequence)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d, idf: %d, seq: %d>" % (self.ptype, self.code, self.identifier, self.sequence)
 
 class DestinationUnreachable(Message):
 	
@@ -78,7 +78,7 @@ class DestinationUnreachable(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBH', data[0:4])
@@ -93,7 +93,7 @@ class TimeExceeded(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBH', data[0:4])
@@ -105,7 +105,7 @@ class ParameterProblem(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, pointer: %d>" % (self.ptype, self._pointer)
+		return "<" + self.__class__.__name__ + ": type: %d, pointer: %d>" % (self.ptype, self._pointer)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum, self._pointer) = struct.unpack('BBHB', data[0:5])
@@ -117,7 +117,7 @@ class SourceQuench(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBH', data[0:4])
@@ -134,7 +134,7 @@ class Redirect(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, code: %d, gateway: %d>" % (self.ptype, self.code, self._gateway)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d, gateway: %d>" % (self.ptype, self.code, self._gateway)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBHI', data[0:4])
@@ -149,7 +149,7 @@ class Timestamp(Message):
 	def pack(self):
 		date = datetime.date.today()
 		delta = datetime.datetime.now() - datetime.datetime(date.year, date.month, date.day)
-		self.originate_timestamp = round(delta.seconds + delta.microseconds/1000)
+		self.originate_timestamp = round(delta.seconds*1000 + delta.microseconds/1000)
 		self.packed = struct.pack('BBHHHIII', self.ptype, self.code, self.checksum, self.identifier, self.sequence, self.originate_timestamp, self.receive_timestamp, self.transmit_timestamp)
 		self.checksum = self._calcchecksum(self.packed)
 		self.packed = struct.pack('BBHHHIII', self.ptype, self.code, self.checksum, self.identifier, self.sequence, self.originate_timestamp, self.receive_timestamp, self.transmit_timestamp)
@@ -162,7 +162,7 @@ class TimestampReply(Message):
 		del self.sequence
 	
 	def __repr__(self):
-		return "<" + self.self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
+		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum, self.identifier, self.sequence, self.originate_timestamp, self.receive_timestamp, self.transmit_timestamp) = struct.unpack('BBHHHIII', data)
