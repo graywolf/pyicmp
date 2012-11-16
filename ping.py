@@ -37,6 +37,7 @@ class Ping:
 	mdev = None
 	packet_loss = 0
 	responses = []
+	ip_headers = []
 	
 	"""Init class
 	
@@ -56,7 +57,7 @@ class Ping:
 		#do the job repeat-times
 		for i in range(0, self.repeat):
 			#reply type & timing
-			reply, delta = handler.handle_packet(self.ip, messages.EchoRequest())
+			reply, delta, ip_header = handler.handle_packet(self.ip, messages.EchoRequest())
 			#was Echo request a success?
 			if type(reply) == messages.EchoReply:
 				#target is out there
@@ -81,6 +82,7 @@ class Ping:
 			else:
 				self.packet_loss += 1
 			#log response
+			self.ip_headers.append(ip_header)
 			self.responses.append(reply)
 		
 		#number of successes
@@ -109,6 +111,6 @@ if __name__ == '__main__':
 		print ('Packet loss:', p.packet_loss)
 		
 		print ('\nTimes:', p.times, 'µs')
-		
 		print ('\nResponses:', [x.__class__.__name__ for x in p.responses])
+		print ('\nIP Headers:', [x for x in p.ip_headers])
 
