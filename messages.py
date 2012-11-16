@@ -118,7 +118,7 @@ class Redirect(Message):
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBHI', data[0:4])
-		self._gateway = socket.inet_ntoa(data[4:4])
+		self.gateway = socket.inet_ntoa(data[4:8])
 
 class Timestamp(Message):
 	
