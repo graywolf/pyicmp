@@ -10,7 +10,20 @@ Because it is supposed to be used in data collection etc, there is no
 reason to fool around with output etc. It just collects data, how you
 use them is up to you.
 
-If you run directly this script, it just prints out everything it knows."""
+If you run directly this script, it just prints out everything it knows.
+
+Attributes:
+	ip			target ip
+	repeat		how many time repeat Echo request
+	
+	times		list with how long each ping took
+	avg_time	calculated average time per ping
+	max_time	maximum time for ping
+	min_time	minimum time for ping
+	mdev		mean deviation of times per ping
+	packet_loss	packet loss: packet_wrong/packet_total
+	responses	list with all response packets
+"""
 class Ping:
 	
 	ip = None
