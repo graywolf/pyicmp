@@ -73,10 +73,6 @@ class DestinationUnreachable(Message):
 	FRAGMENTATION_NEEDED = 4
 	SOURCE_ROUTE_FAILED = 5
 	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
-	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
@@ -88,10 +84,6 @@ class TimeExceeded(Message):
 	TIME_TO_LIVE_EXCEEDED_IN_TRANSIT = 0
 	FRAGMENT_REASSEMBLY_TIME_EXCEEDED = 1
 	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
-	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
 	
@@ -100,10 +92,6 @@ class TimeExceeded(Message):
 
 class ParameterProblem(Message):
 	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
-	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, pointer: %d>" % (self.ptype, self._pointer)
 	
@@ -111,10 +99,6 @@ class ParameterProblem(Message):
 		(self.ptype, self.code, self.checksum, self._pointer) = struct.unpack('BBHB', data[0:5])
 
 class SourceQuench(Message):
-	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
 	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
@@ -128,10 +112,6 @@ class Redirect(Message):
 	REDIRECT_DATAGRAMS_FOR_THE_HOST = 1
 	REDIRECT_DATAGRAMS_FOR_THE_TYPE_OF_SERVICE_AND_NETWORK = 2
 	REDIRECT_DATAGRAMS_FOR_THE_TYPE_OF_SERVICE_AND_HOST = 3
-	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
 	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, code: %d, gateway: %d>" % (self.ptype, self.code, self._gateway)
@@ -156,10 +136,6 @@ class Timestamp(Message):
 		return self.packed
 
 class TimestampReply(Message):
-	
-	def __init__(self):
-		del self.identifier
-		del self.sequence
 	
 	def __repr__(self):
 		return "<" + self.__class__.__name__ + ": type: %d, code: %d>" % (self.ptype, self.code)
