@@ -14,15 +14,16 @@ args:
 				socket
 	force_port	for usage of specific port
 	ttl			socket TTL, None meaning default
+	timeout		socket timeout
 
 returns:
 	output == False
 		nothing
 	
 	output == True
-		tuple (response packet, time it took)
+		tuple (response packet, time it took, ip header)
 """
-def handle_packet(ip, inp, output = True, force_port = None, ttl = None):
+def handle_packet(ip, inp, output = True, force_port = None, ttl = None, timeout = None):
 	if force_port is not None:
 		port = force_port
 	else:
@@ -38,6 +39,9 @@ def handle_packet(ip, inp, output = True, force_port = None, ttl = None):
 	
 	if ttl is not None:
 		outs.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+	if timeout is not None:
+		ins.settimeout(timeout)
+		
 	outs.sendto(inp.pack(), (ip, port))
 	
 	if output:

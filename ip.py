@@ -1,6 +1,9 @@
 import struct
 import socket
 
+"""IP Header
+
+Representation of IP Header object"""
 class Header:
 	
 	"""Takes data (packed ip header) as optional argument"""
@@ -19,6 +22,9 @@ class Header:
 		if data is not None:
 			self.unpack(data)
 	
+	"""Unpack data and fill all attributes.
+	
+	Converts packed IP adresses to string representations"""
 	def unpack(self, data):
 		(self.version_ihl, self.type_of_service, self.length,
 		self.identification, self.flags_offset, self.ttl,

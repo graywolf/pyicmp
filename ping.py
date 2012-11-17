@@ -60,7 +60,7 @@ class Ping:
 		#do the job repeat-times
 		for i in range(0, self.repeat):
 			#reply type & timing
-			reply, delta, ip_header = handler.handle_packet(self.ip, messages.EchoRequest())
+			reply, delta, ip_header = handler.handle_packet(self.ip, messages.EchoRequest(), ttl = self.ttl, timeout = self.timeout)
 			#was Echo request a success?
 			if type(reply) == messages.EchoReply:
 				#target is out there
