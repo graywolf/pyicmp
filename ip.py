@@ -3,18 +3,19 @@ import socket
 
 class Header:
 	
-	version_ihl = None
-	type_of_service = None
-	length = None
-	identification = None
-	flags_offset = None
-	ttl = None
-	protocol = None
-	checksum = None
-	source_ip = None
-	destination_ip = None
-	
+	"""Takes data (packed ip header) as optional argument"""
 	def __init__(self, data = None):
+		self.version_ihl = None
+		self.type_of_service = None
+		self.length = None
+		self.identification = None
+		self.flags_offset = None
+		self.ttl = None
+		self.protocol = None
+		self.checksum = None
+		self.source_ip = None
+		self.destination_ip = None
+		
 		if data is not None:
 			self.unpack(data)
 	

@@ -15,6 +15,8 @@ If you run directly this script, it just prints out everything it knows.
 Attributes:
 	ip			target ip
 	repeat		how many time repeat Echo request
+	ttl			TTL of the packet, None for default
+	timeout		timeout for ping, None meaning default
 	
 	times		list with how long each ping took
 	avg_time	calculated average time per ping
@@ -26,19 +28,6 @@ Attributes:
 """
 class Ping:
 	
-	ip = None
-	on = False
-	repeat = 10
-	
-	times = []
-	avg_time = None
-	max_time = None
-	min_time = None
-	mdev = None
-	packet_loss = 0
-	responses = []
-	ip_headers = []
-	
 	"""Init class
 	
 	args:
@@ -49,6 +38,20 @@ class Ping:
 	many times repeat the measurement)."""
 	def __init__(self, ip, run = True):
 		self.ip = ip
+		self.on = False
+		self.repeat = 10
+		self.ttl = None
+		self.timeout = None
+		
+		self.times = []
+		self.avg_time = None
+		self.max_time = None
+		self.min_time = None
+		self.mdev = None
+		self.packet_loss = 0
+		self.responses = []
+		self.ip_headers = []
+		
 		if run:
 			self.do_ping()
 	
