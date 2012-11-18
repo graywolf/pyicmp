@@ -79,7 +79,7 @@ if __name__ == '__main__':
 		i = 1
 		for p in t.pings:
 			try:
-				print(i, p.host[0], '(', p.ip_headers[0].source_ip, ')', p.avg_time)
+				print(i, p.host[0], '(' + p.ip_headers[0].source_ip + ')', 'avg:', p.avg_time, 'µs')
 			except:
 				print(i, '* * *')
 			i += 1
