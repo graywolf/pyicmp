@@ -15,6 +15,7 @@ attributes:
 	max_hops	maximum number of hops to the target (target beeing 60th)
 	ping_repeat	repeat attribute of ping
 	timeout		socket timeout (default 5 sec, 'cause ping over 5s is way too big)
+	detailed	after tracing do ping for each routing point
 """
 class TraceRoute:
 	
@@ -25,10 +26,11 @@ class TraceRoute:
 		self.ping_repeat = 1
 		self.timeout = 5
 		self.reached = False
+		self.detailed = True
 		
 		self.pings = []
 		
-		if run is not None:
+		if run:
 			self.do_trace()
 	
 	def do_trace(self):
@@ -57,6 +59,15 @@ class TraceRoute:
 				break
 			
 			ttl += 1
+		
+		if self.detailed:
+			ps = []
+			for p in self.pings:
+				try:
+					ps.append(ping.Ping(p.ip_headers[0].source_ip))
+				except:
+					ps.append(p)
+			self.pings = ps
 	
 
 if __name__ == '__main__':
@@ -68,7 +79,7 @@ if __name__ == '__main__':
 		i = 1
 		for p in t.pings:
 			try:
-				print(i, p.ip_headers[0].source_ip)
+				print(i, p.host[0], '(', p.ip_headers[0].source_ip, ')', p.avg_time)
 			except:
 				print(i, '* * *')
 			i += 1

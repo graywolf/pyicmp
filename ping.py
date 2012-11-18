@@ -42,6 +42,7 @@ class Ping:
 		self.repeat = 10
 		self.ttl = None
 		self.timeout = None
+		self.host = None
 		
 		self.times = []
 		self.avg_time = None
@@ -99,6 +100,8 @@ class Ping:
 			self.avg_time = sum(self.times) / len(self.times)
 		#convert #packet loss to [0;1] percentage value
 		self.packet_loss /= self.repeat
+		#get hostname etc
+		self.host = socket.gethostbyaddr(self.ip)
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
