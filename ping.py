@@ -36,14 +36,14 @@ class Ping:
 	
 	You will use run = False mostly if you want to change repeat value (how
 	many times repeat the measurement)."""
-	def __init__(self, ip, run = True):
+	def __init__(self, ip, run = True, repeat = 10, ttl = 64, timeout = None, handler = handler.Handler()):
 		self.ip = ip
-		self.on = False
-		self.repeat = 10
-		self.ttl = None
-		self.timeout = None
-		self.host = None
+		self.repeat = repeat
+		self.ttl = ttl
+		self.timeout = timeout
 		
+		self.on = False
+		self.host = None
 		self.times = []
 		self.avg_time = None
 		self.max_time = None
@@ -53,15 +53,20 @@ class Ping:
 		self.responses = []
 		self.ip_headers = []
 		
+		self.handler = handler
+		
 		if run:
 			self.do_ping()
 	
 	"""Do the ping. self.ip must be setted."""
 	def do_ping(self):
+		self.handler.ip = self.ip
+		self.handler.ttl = self.ttl
+		self.handler.timeout = self.timeout
 		#do the job repeat-times
 		for i in range(0, self.repeat):
 			#reply type & timing
-			reply, delta, ip_header = handler.handle_packet(self.ip, messages.EchoRequest(), ttl = self.ttl, timeout = self.timeout)
+			reply, delta, ip_header = self.handler.do(messages.EchoRequest())
 			#was Echo request a success?
 			if type(reply) == messages.EchoReply:
 				#target is out there

@@ -2,59 +2,74 @@ import socket
 import messages
 import datetime
 import ip as ip_m
+import os, pwd, grp
 
 default_port = 33434
 
-"""Function to send ICMP packet and receive answer (if one is expected).
-
-args:
-	ip			ip adress of target
-	inp			input message (some of messages.*) -> .pack() is used
-	outp		true if function should try to read output/return value from
-				socket
-	force_port	for usage of specific port
-	ttl			socket TTL, None meaning default
-	timeout		socket timeout
-
-returns:
-	output == False
-		nothing
+class Handler:
 	
-	output == True
-		tuple (response packet, time it took, ip header)
-"""
-def handle_packet(ip, inp, output = True, force_port = None, ttl = None, timeout = None):
-	if force_port is not None:
-		port = force_port
-	else:
-		port = default_port
-	
-	outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-	ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-	
-	ins.bind(("", port))
-	
-	if output:
-		start = datetime.datetime.now()
-	
-	if ttl is not None:
-		outs.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-	if timeout is not None:
-		ins.settimeout(timeout)
+	def __init__(self, port = None, user = 'paladin', group = 'users', output = True):
+		if port is None:
+			self.port = default_port
+		else:
+			self.port = port
 		
-	outs.sendto(inp.pack(), (ip, port))
+		self.output = output
+		self.ttl = 64
+		
+		self.ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+		self.outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+		try:
+			os.setgid(grp.getgrnam(group).gr_gid)
+			os.setuid(pwd.getpwnam(user).pw_uid)
+		except:
+			pass
+		
+		self.timeout = self.ins.gettimeout()
 	
-	if output:
-		a = ins.recvfrom(1024)[0]
-		end = datetime.datetime.now()
-		ip_header = ip_m.Header(a[:20])
-		outp = messages.types[a[20]]()
-		outp.unpack(a[20:])
+	"""Function to send ICMP packet and receive answer (if one is expected).
 	
-	ins.close()
-	outs.close()
+	args:
+		ip			ip adress of target
+		inp			input message (some of messages.*) -> .pack() is used
+		outp		true if function should try to read output/return value from
+					socket
+		force_port	for usage of specific port
+		ttl			socket TTL, None meaning default
+		timeout		socket timeout
 	
-	if output:
-		delta = end - start
-		return (outp, delta, ip_header)
+	returns:
+		output == False
+			nothing
+		
+		output == True
+			tuple (response packet, time it took, ip header)
+	"""
+	def do(self, packet):
+		self.ins.bind(("", self.port))
+		
+		if self.output:
+			start = datetime.datetime.now()
+		
+		if self.ttl is not None:
+			self.outs.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
+		if self.timeout is not None:
+			self.ins.settimeout(self.timeout)
+			
+		self.outs.sendto(packet.pack(), (self.ip, self.port))
+		
+		if self.output:
+			a = self.ins.recvfrom(1024)[0]
+			end = datetime.datetime.now()
+			ip_header = ip_m.Header(a[:20])
+			outp = messages.types[a[20]]()
+			outp.unpack(a[20:])
+			
+			delta = end - start
+			return (outp, delta, ip_header)
+	
+	def __del__(self):
+		self.ins.close()
+		self.outs.close()
+	
 

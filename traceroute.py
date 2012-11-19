@@ -1,6 +1,7 @@
 import ping
 import sys
 import socket
+import copy
 
 """This class performs trace route.
 
