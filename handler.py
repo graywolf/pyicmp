@@ -4,21 +4,20 @@ import datetime
 import ip as ip_m
 import os, pwd, grp
 
-default_port = 33434
-
 class Handler:
 	
+	default_port = 33434
+	
 	def __init__(self, port = None, user = 'paladin', group = 'users', output = True):
-		if port is None:
-			self.port = default_port
-		else:
-			self.port = port
-		
 		self.output = output
 		self.ttl = 64
 		
 		self.ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
 		self.outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+		
+		self.port = Handler.default_port
+		self.ins.bind(("", self.port))
+		
 		try:
 			os.setgid(grp.getgrnam(group).gr_gid)
 			os.setuid(pwd.getpwnam(user).pw_uid)
@@ -46,8 +45,6 @@ class Handler:
 			tuple (response packet, time it took, ip header)
 	"""
 	def do(self, packet):
-		self.ins.bind(("", self.port))
-		
 		if self.output:
 			start = datetime.datetime.now()
 		

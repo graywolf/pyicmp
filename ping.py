@@ -37,7 +37,7 @@ class Ping:
 	
 	You will use run = False mostly if you want to change repeat value (how
 	many times repeat the measurement)."""
-	def __init__(self, ip, run = True, repeat = 100, ttl = 64, sleep = 0.25, timeout = None, handler = handler.Handler()):
+	def __init__(self, ip, run = True, repeat = 10, ttl = 64, sleep = 0.25, timeout = None, handler = handler.Handler()):
 		self.ip = ip
 		self.repeat = repeat
 		self.ttl = ttl
