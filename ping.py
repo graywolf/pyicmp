@@ -3,6 +3,7 @@ import messages
 import datetime
 import sys
 import socket
+import time
 
 """Class for pinging IP adress.
 
@@ -13,11 +14,6 @@ use them is up to you.
 If you run directly this script, it just prints out everything it knows.
 
 Attributes:
-	ip			target ip
-	repeat		how many time repeat Echo request
-	ttl			TTL of the packet, None for default
-	timeout		timeout for ping, None meaning default
-	
 	times		list with how long each ping took
 	avg_time	calculated average time per ping
 	max_time	maximum time for ping
@@ -33,14 +29,20 @@ class Ping:
 	args:
 		ip	ip adress of target
 		run	True for auto run, if False you must call do_ping() to collect data
+		ip			target ip
+		repeat		how many time repeat Echo request
+		ttl			TTL of the packet, None for default
+		timeout		timeout for ping, None meaning default
+		sleep		sleep between Echo Requests to distribute tries more equally over time
 	
 	You will use run = False mostly if you want to change repeat value (how
 	many times repeat the measurement)."""
-	def __init__(self, ip, run = True, repeat = 10, ttl = 64, timeout = None, handler = handler.Handler()):
+	def __init__(self, ip, run = True, repeat = 100, ttl = 64, sleep = 0.25, timeout = None, handler = handler.Handler()):
 		self.ip = ip
 		self.repeat = repeat
 		self.ttl = ttl
 		self.timeout = timeout
+		self.sleep = sleep
 		
 		self.on = False
 		self.host = None
@@ -93,6 +95,7 @@ class Ping:
 			#log response
 			self.ip_headers.append(ip_header)
 			self.responses.append(reply)
+			time.sleep(self.sleep)
 		
 		#number of successes
 		ok = self.repeat - self.packet_loss
