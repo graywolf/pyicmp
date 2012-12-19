@@ -27,23 +27,29 @@ class Ping:
 	"""Init class
 	
 	args:
-		ip	ip adress of target
-		run	True for auto run, if False you must call do_ping() to collect data
+		ip			ip adress of target
+		run			True for auto run, if False you must call do_ping() to collect data
 		ip			target ip
 		repeat		how many time repeat Echo request
-		ttl			TTL of the packet, None for default
-		timeout		timeout for ping, None meaning default
-		sleep		sleep between Echo Requests to distribute tries more equally over time
-	
-	You will use run = False mostly if you want to change repeat value (how
-	many times repeat the measurement)."""
-	def __init__(self, ip, run = True, repeat = 100, ttl = 64, sleep = 0.25, timeout = None, handler = handler.Handler()):
+		ttl			TTL of the packet
+		timeout		timeout for ping
+		sleep		sleep between Echo Requests to distribute tries more equally over time"""
+	def __init__(self, ip, run = True, repeat = 10, ttl = 64, sleep = 0.5, timeout = None):
 		self.ip = ip
 		self.repeat = repeat
 		self.ttl = ttl
 		self.timeout = timeout
 		self.sleep = sleep
 		
+		self.handler = handler.Handler()
+		
+		self.reset()
+		
+		if run:
+			self.do_ping()
+	
+	"""Resets all "output" attributes"""
+	def reset(self):
 		self.on = False
 		self.host = None
 		self.times = []
@@ -54,11 +60,6 @@ class Ping:
 		self.packet_loss = 0
 		self.responses = []
 		self.ip_headers = []
-		
-		self.handler = handler
-		
-		if run:
-			self.do_ping()
 	
 	"""Do the ping. self.ip must be setted."""
 	def do_ping(self):

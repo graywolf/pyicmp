@@ -31,13 +31,15 @@ class TraceRoute:
 		
 		self.pings = []
 		
+		self._ping = ping.Ping(self.ip, run = False)
+		
 		if run:
 			self.do_trace()
 	
 	def do_trace(self):
 		ttl = 1
 		while True:
-			p = ping.Ping(self.ip, run = False)
+			p = copy.copy(self._ping)
 			p.ttl = ttl
 			p.repeat = 1
 			p.timeout = self.timeout
@@ -65,8 +67,13 @@ class TraceRoute:
 			ps = []
 			for p in self.pings:
 				try:
-					ps.append(ping.Ping(p.ip_headers[0].source_ip))
-				except:
+					_p = copy.copy(self._ping)
+					_p.reset()
+					_p.ip = p.ip_headers[0].source_ip
+					_p.sleep = 0
+					_p.do_ping()
+					ps.append(_p)
+				except Exception as e:
 					ps.append(p)
 			self.pings = ps
 	

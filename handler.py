@@ -8,12 +8,9 @@ default_port = 33434
 
 class Handler:
 	
-	def __init__(self, port = None, user = 'paladin', group = 'users', output = True):
-		if port is None:
-			self.port = default_port
-		else:
-			self.port = port
+	def __init__(self, port = default_port, user = 'paladin', group = 'users', output = True):
 		
+		self.port = port
 		self.output = output
 		self.ttl = 64
 		
