@@ -9,7 +9,6 @@ class Handler:
 	default_port = 33434
 	
 	def __init__(self, port = default_port, user = 'paladin', group = 'users', output = True):
-		
 		self.port = port
 		self.output = output
 		self.ttl = 64
@@ -47,9 +46,6 @@ class Handler:
 			tuple (response packet, time it took, ip header)
 	"""
 	def do(self, packet):
-		if self.output:
-			start = datetime.datetime.now()
-		
 		if self.ttl is not None:
 			self.outs.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
 		if self.timeout is not None:
@@ -58,6 +54,7 @@ class Handler:
 		self.outs.sendto(packet.pack(), (self.ip, self.port))
 		
 		if self.output:
+			start = datetime.datetime.now()
 			a = self.ins.recvfrom(1024)[0]
 			end = datetime.datetime.now()
 			ip_header = ip_m.Header(a[:20])

@@ -2,6 +2,7 @@ import ping
 import sys
 import socket
 import copy
+import handler
 
 """This class performs trace route.
 
@@ -20,18 +21,17 @@ attributes:
 """
 class TraceRoute:
 	
-	def __init__(self, ip, run = True):
+	def __init__(self, ip, run = True, detailed = True, handler = handler.Handler()):
 		self.ip = ip
 		
 		self.max_hops = 60
 		self.ping_repeat = 1
 		self.timeout = 5
 		self.reached = False
-		self.detailed = True
+		self.detailed = detailed
+		self.handler = handler
 		
 		self.pings = []
-		
-		self._ping = ping.Ping(self.ip, run = False)
 		
 		if run:
 			self.do_trace()
@@ -39,7 +39,7 @@ class TraceRoute:
 	def do_trace(self):
 		ttl = 1
 		while True:
-			p = copy.copy(self._ping)
+			p = ping.Ping(self.ip, run = False, handler = self.handler)
 			p.ttl = ttl
 			p.repeat = 1
 			p.timeout = self.timeout
@@ -54,7 +54,6 @@ class TraceRoute:
 				if self.pings[-1].responses[-1].__class__.__name__ == 'EchoReply':
 					self.reached = True
 					break
-					
 			except:
 				pass
 			
@@ -67,12 +66,12 @@ class TraceRoute:
 			ps = []
 			for p in self.pings:
 				try:
-					_p = copy.copy(self._ping)
-					_p.reset()
-					_p.ip = p.ip_headers[0].source_ip
-					_p.sleep = 0
-					_p.do_ping()
-					ps.append(_p)
+					ip = p.ip_headers[0].source_ip
+					p.reset()
+					p.ip = ip
+					p.sleep = 0
+					p.do_ping()
+					ps.append(p)
 				except Exception as e:
 					ps.append(p)
 			self.pings = ps
@@ -88,7 +87,7 @@ if __name__ == '__main__':
 		for p in t.pings:
 			try:
 				print(i, p.host[0], '(' + p.ip_headers[0].source_ip + ')', 'avg:', p.avg_time, 'µs')
-			except:
+			except TypeError:
 				print(i, '* * *')
 			i += 1
 

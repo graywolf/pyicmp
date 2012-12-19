@@ -28,6 +28,7 @@ class Ping:
 	
 	args:
 		ip			ip adress of target
+		handler		instance of handler.Handler
 		run			True for auto run, if False you must call do_ping() to collect data
 		ip			target ip
 		repeat		how many time repeat Echo request
@@ -37,14 +38,14 @@ class Ping:
 	
 	You will use run = False mostly if you want to change repeat value (how
 	many times repeat the measurement)."""
-	def __init__(self, ip, run = True, repeat = 10, ttl = 64, sleep = 0.25, timeout = None, handler = handler.Handler()):
+	def __init__(self, ip, handler, run = True, repeat = 10, ttl = 64, sleep = 0.25, timeout = None):
 		self.ip = ip
 		self.repeat = repeat
 		self.ttl = ttl
 		self.timeout = timeout
 		self.sleep = sleep
 		
-		self.handler = handler.Handler()
+		self.handler = handler
 		
 		self.reset()
 		
@@ -119,7 +120,7 @@ if __name__ == '__main__':
 	if len(sys.argv) != 2:
 		print('Usage: ' + sys.argv[0] + ' IP|hostname')
 	else:
-		p = Ping(socket.gethostbyname(sys.argv[1]))
+		p = Ping(socket.gethostbyname(sys.argv[1]), handler.Handler())
 		
 		print ('Reachable:', p.on)
 		print ('Average time:', p.avg_time, 'µs')
