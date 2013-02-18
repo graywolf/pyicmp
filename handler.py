@@ -71,10 +71,9 @@ class Handler:
 				outp = messages.types[a[20]]()
 				outp.unpack(a[20:])
 				
-				if os.getpid() == outp.identifier and packet.sequence == outp.sequence+1:
+				if os.getpid() == outp.identifier and packet.sequence == outp.sequence:
 					delta = end - start
 					return (outp, delta, ip_header)
-				print (time.time() - s)
 			
 			raise TimeoutException
 	
