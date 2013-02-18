@@ -3,6 +3,11 @@ import messages
 import datetime
 import ip as ip_m
 import os, pwd, grp
+import time
+import random
+
+class TimeoutException(Exception):
+	pass
 
 class Handler:
 	
@@ -46,6 +51,7 @@ class Handler:
 			tuple (response packet, time it took, ip header)
 	"""
 	def do(self, packet):
+		packet.sequence = random.randrange(1, 65535)
 		if self.ttl is not None:
 			self.outs.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
 		if self.timeout is not None:
@@ -54,15 +60,23 @@ class Handler:
 		self.outs.sendto(packet.pack(), (self.ip, self.port))
 		
 		if self.output:
-			start = datetime.datetime.now()
-			a = self.ins.recvfrom(1024)[0]
-			end = datetime.datetime.now()
-			ip_header = ip_m.Header(a[:20])
-			outp = messages.types[a[20]]()
-			outp.unpack(a[20:])
 			
-			delta = end - start
-			return (outp, delta, ip_header)
+			s = time.time()
+			#while loop with timeout
+			while time.time() - s < 10:
+				start = datetime.datetime.now()
+				a = self.ins.recvfrom(1024)[0]
+				end = datetime.datetime.now()
+				ip_header = ip_m.Header(a[:20])
+				outp = messages.types[a[20]]()
+				outp.unpack(a[20:])
+				
+				if os.getpid() == outp.identifier and packet.sequence == outp.sequence+1:
+					delta = end - start
+					return (outp, delta, ip_header)
+				print (time.time() - s)
+			
+			raise TimeoutException
 	
 	def __del__(self):
 		self.ins.close()

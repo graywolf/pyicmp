@@ -2,7 +2,12 @@ pyicmp
 ======
 
 Python 3 library implementing ICMP protocol and some usefull
-applications of it (traceroute, ...).
+applications of it (at the moment ping and traceroute).
+
+It is definitely possible to use it in paralel (multiprocessing)
+and maybe possible to use it in multithreading (based on random numbers).
+As long as each instance of Handler is running with different
+process id, you are safe.
 
 Requirements
 ============

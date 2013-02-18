@@ -9,9 +9,6 @@ import struct
 import os
 import datetime
 
-identifier = os.getpid()
-sequence = 0
-
 """Skeleton message class
 
 Basic attributes and needed method, setting unified API for all
@@ -26,9 +23,7 @@ class Message:
 	identifier = 0
 	sequence = 0
 	
-	def __init__(self):
-		global sequence
-		sequence = sequence + 1
+	def __init__(self, sequence = 0, identifier = os.getpid()):
 		self.identifier = identifier
 		self.sequence = sequence
 	
