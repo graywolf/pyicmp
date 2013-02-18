@@ -26,7 +26,7 @@ class TraceRoute:
 		
 		self.max_hops = 60
 		self.ping_repeat = 1
-		self.timeout = 5
+		self.timeout = 2
 		self.reached = False
 		self.detailed = detailed
 		self.handler = handler

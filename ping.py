@@ -70,6 +70,7 @@ class Ping:
 		self.handler.ip = self.ip
 		self.handler.ttl = self.ttl
 		self.handler.timeout = self.timeout
+		
 		#do the job repeat-times
 		for i in range(0, self.repeat):
 			#reply type & timing
