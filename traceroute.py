@@ -1,8 +1,8 @@
-import ping
+from . import ping
+from . import handler
 import sys
 import socket
 import copy
-import handler
 
 """This class performs trace route.
 
@@ -76,18 +76,4 @@ class TraceRoute:
 					ps.append(p)
 			self.pings = ps
 	
-
-if __name__ == '__main__':
-	if len(sys.argv) != 2:
-		print('Usage: ' + sys.argv[0] + ' IP|hostname')
-	else:
-		print('Traceroute-ing', sys.argv[0])
-		t = TraceRoute(socket.gethostbyname(sys.argv[1]))
-		i = 1
-		for p in t.pings:
-			try:
-				print(i, p.host[0], '(' + p.ip_headers[0].source_ip + ')', 'avg:', p.avg_time, 'µs')
-			except TypeError:
-				print(i, '* * *')
-			i += 1
 

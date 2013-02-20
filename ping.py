@@ -1,9 +1,10 @@
-import handler
-import messages
+from . import handler
+from . import messages
 import datetime
 import sys
 import socket
 import time
+import os
 
 """Class for pinging IP adress.
 
@@ -48,7 +49,6 @@ class Ping:
 		self.handler = handler
 		
 		self.reset()
-		
 		if run:
 			self.do_ping()
 	
@@ -74,7 +74,7 @@ class Ping:
 		#do the job repeat-times
 		for i in range(0, self.repeat):
 			#reply type & timing
-			reply, delta, ip_header = self.handler.do(messages.EchoRequest())
+			reply, delta, ip_header = self.handler.do(messages.EchoRequest(identifier = os.getpid()))
 			#was Echo request a success?
 			if type(reply) == messages.EchoReply:
 				#target is out there
@@ -95,13 +95,17 @@ class Ping:
 						self.min_time = microseconds
 				except TypeError:
 					self.min_time = microseconds
+			elif type(reply) == messages.EchoRequest:
+				self.on = True
+				self.packet_loss += 1
 			#could not get through, increase packet loss
 			else:
 				self.packet_loss += 1
 			#log response
 			self.ip_headers.append(ip_header)
 			self.responses.append(reply)
-			time.sleep(self.sleep)
+			if i != self.repeat -1:
+				time.sleep(self.sleep)
 		
 		#number of successes
 		ok = self.repeat - self.packet_loss
@@ -115,22 +119,27 @@ class Ping:
 		#convert #packet loss to [0;1] percentage value
 		self.packet_loss /= self.repeat
 		#get hostname etc
-		self.host = socket.gethostbyaddr(self.ip)
-
-if __name__ == '__main__':
-	if len(sys.argv) != 2:
-		print('Usage: ' + sys.argv[0] + ' IP|hostname')
-	else:
-		p = Ping(socket.gethostbyname(sys.argv[1]), handler.Handler())
+		try:
+			self.host = socket.gethostbyaddr(self.ip)
+		#no PTR exists for this ip
+		except socket.herror as e:
+			self.host = None
+	
+	#need this function to make passing data between processes work
+	def get_dict(self):
+		d = {}
+		d['hostname'] = self.host
+		d['ip'] = self.ip
+		d['mdev'] = self.mdev
+		d['avg_time'] = self.avg_time
+		d['packet_loss'] = self.packet_loss
+		d['on'] = self.on
+		d['max_time'] = self.max_time
+		d['min_time'] = self.min_time
+		d['ip_headers'] = self.ip_headers
+		d['responses'] = self.responses
+		d['ttl'] = self.ttl
+		d['times'] = self.times
 		
-		print ('Reachable:', p.on)
-		print ('Average time:', p.avg_time, 'µs')
-		print ('Maximum time:', p.max_time, 'µs')
-		print ('Minimum time:', p.min_time, 'µs')
-		print ('MDev:', p.mdev, 'µs')
-		print ('Packet loss:', p.packet_loss)
-		
-		print ('\nTimes:', p.times, 'µs')
-		print ('\nResponses:', [x.__class__.__name__ for x in p.responses])
-		print ('\nIP Headers:', [x for x in p.ip_headers])
+		return d
 

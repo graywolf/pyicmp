@@ -1,10 +1,11 @@
+from . import ip as ip_m
+from . import messages
 import socket
-import messages
 import datetime
-import ip as ip_m
 import os, pwd, grp
 import time
 import random
+import struct
 
 class TimeoutException(Exception):
 	pass
@@ -25,8 +26,9 @@ class Handler:
 		self.ins.bind(("", self.port))
 		
 		try:
-			os.setgid(grp.getgrnam(group).gr_gid)
-			os.setuid(pwd.getpwnam(user).pw_uid)
+			#os.setgid(grp.getgrnam(group).gr_gid)
+			#os.setuid(pwd.getpwnam(user).pw_uid)
+			pass
 		except:
 			pass
 		
@@ -52,18 +54,19 @@ class Handler:
 	"""
 	def do(self, packet):
 		packet.sequence = random.randrange(1, 65535)
+		packet.identifier = os.getpid()
 		if self.ttl is not None:
 			self.outs.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
 		if self.timeout is not None:
 			self.ins.settimeout(self.timeout)
-			
+		
 		self.outs.sendto(packet.pack(), (self.ip, self.port))
 		
 		if self.output:
 			
 			s = time.time()
 			#while loop with timeout
-			while time.time() - s < 10:
+			while time.time() - s < 30:
 				start = datetime.datetime.now()
 				a = self.ins.recvfrom(1024)[0]
 				end = datetime.datetime.now()
@@ -71,15 +74,39 @@ class Handler:
 				outp = messages.types[a[20]]()
 				outp.unpack(a[20:])
 				
-				#kind of ugly, but seems to work
-				if (type(outp) == messages.TimeExceeded and os.getpid() == outp.identifier) or (os.getpid() == outp.identifier and packet.sequence == outp.sequence):
+				if (
+						(
+							#handle errors
+							type(outp) in messages.error_messages and
+							os.getpid() == outp.original_message.identifier and
+							packet.sequence == outp.original_message.sequence
+						)
+						or
+						(
+							#handle normal responses
+							type(outp) in messages.reply_messages and
+							os.getpid() == outp.identifier and
+							packet.sequence == outp.sequence
+						)
+					):
 					delta = end - start
 					return (outp, delta, ip_header)
+				#special fix for that idiotic BitDefender Firewall
+				elif a.find(b"BitDefender Firewall Broadcast") != -1:
+					delta = end - start
+					return (outp, delta, ip_header)
+				else:
+					pass
 			
 			raise TimeoutException
 	
 	def __del__(self):
-		self.ins.close()
-		self.outs.close()
-	
+		try:
+			self.ins.close()
+		except AttributeError:
+			pass
+		try:
+			self.outs.close()
+		except AttributeError:
+			pass
 
