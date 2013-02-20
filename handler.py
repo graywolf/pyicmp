@@ -14,10 +14,11 @@ class Handler:
 	
 	default_port = 33434
 	
-	def __init__(self, port = default_port, user = 'paladin', group = 'users', output = True):
+	def __init__(self, port = default_port, user = 'paladin', group = 'users', output = True, looptime = 30):
 		self.port = port
 		self.output = output
 		self.ttl = 64
+		self.looptime = looptime
 		
 		self.ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
 		self.outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
@@ -66,9 +67,13 @@ class Handler:
 			
 			s = time.time()
 			#while loop with timeout
-			while time.time() - s < 30:
+			while time.time() - s < self.looptime:
 				start = datetime.datetime.now()
-				a = self.ins.recvfrom(1024)[0]
+				try:
+					a = self.ins.recvfrom(1024)[0]
+				#packet lost, try again
+				except socket.timeout:
+					raise TimeoutException
 				end = datetime.datetime.now()
 				ip_header = ip_m.Header(a[:20])
 				outp = messages.types[a[20]]()
@@ -91,7 +96,7 @@ class Handler:
 					):
 					delta = end - start
 					return (outp, delta, ip_header)
-				#special fix for that idiotic BitDefender Firewall
+				#special dirty fix for that idiotic BitDefender Firewall
 				elif a.find(b"BitDefender Firewall Broadcast") != -1:
 					delta = end - start
 					return (outp, delta, ip_header)

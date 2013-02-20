@@ -73,8 +73,14 @@ class Ping:
 		
 		#do the job repeat-times
 		for i in range(0, self.repeat):
+			if i != 0:
+				time.sleep(self.sleep)
 			#reply type & timing
-			reply, delta, ip_header = self.handler.do(messages.EchoRequest(identifier = os.getpid()))
+			try:
+				reply, delta, ip_header = self.handler.do(messages.EchoRequest(identifier = os.getpid()))
+			except handler.TimeoutException:
+				self.packet_loss += 1
+				continue
 			#was Echo request a success?
 			if type(reply) == messages.EchoReply:
 				#target is out there
@@ -95,6 +101,7 @@ class Ping:
 						self.min_time = microseconds
 				except TypeError:
 					self.min_time = microseconds
+			#special dirty fix for that idiotic BitDefender Firewall
 			elif type(reply) == messages.EchoRequest:
 				self.on = True
 				self.packet_loss += 1
@@ -104,8 +111,6 @@ class Ping:
 			#log response
 			self.ip_headers.append(ip_header)
 			self.responses.append(reply)
-			if i != self.repeat -1:
-				time.sleep(self.sleep)
 		
 		#number of successes
 		ok = self.repeat - self.packet_loss
