@@ -83,6 +83,8 @@ class Handler:
 						(
 							#handle errors
 							type(outp) in messages.error_messages and
+							#cover not specification complient routers
+							outp.original_message is not None and
 							os.getpid() == outp.original_message.identifier and
 							packet.sequence == outp.original_message.sequence
 						)

@@ -78,9 +78,13 @@ class DestinationUnreachable(Message):
 	
 	def unpack(self, data):
 		(self.ptype, self.code, self.checksum) = struct.unpack('BBH', data[0:self._size])
-		self.original_header = ip_m.Header(data[8:28])
-		self.original_message = types[data[28]]()
-		self.original_message.unpack(data[28:28+types[data[28]]._size])
+		try:
+			self.original_header = ip_m.Header(data[8:28])
+			if data[28] in types:
+				self.original_message = types[data[28]]()
+				self.original_message.unpack(data[28:28+types[data[28]]._size])
+		except Exception:
+			pass
 
 class TimeExceeded(Message):
 	
