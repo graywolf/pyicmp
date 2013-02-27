@@ -1,119 +1,87 @@
-from . import ip as ip_m
-from . import messages
-import socket
-import datetime
-import os, pwd, grp
+from threading import Lock
+from . import ping
 import time
-import random
-import struct
-
-class TimeoutException(Exception):
-	pass
+import socket
 
 class Handler:
 	
-	default_port = 33434
+	identifier = 0
+	ports = []
+	l = Lock()
+
+	#this should be enough port, app will likely never use so many threads anyway
+	max_ports = 1024
+
+	def __init__(self, port = 33438):
+		self.start_port = port
 	
-	def __init__(self, port = default_port, user = 'paladin', group = 'users', output = True, looptime = 30):
-		self.port = port
-		self.output = output
-		self.ttl = 64
-		self.looptime = looptime
-		
-		self.ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-		self.outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-		
-		self.port = Handler.default_port
-		self.ins.bind(("", self.port))
-		
-		try:
-			#os.setgid(grp.getgrnam(group).gr_gid)
-			#os.setuid(pwd.getpwnam(user).pw_uid)
-			pass
-		except:
-			pass
-		
-		self.timeout = self.ins.gettimeout()
+	def do_ping(self, ip, ttl = 64):
+		#get identifier for this serie of packet
+		with self.l:
+			i = self.identifier
+			self.identifier += 1
+		#get free port to use
+		while True:
+			self.l.acquire()
+			if len(self.ports) >= self.max_ports:
+				self.l.release()
+				time.sleep(0.1)
+			else:
+				port = None
+				for port in range(self.start_port, self.start_port + self.max_ports):
+					if port not in self.ports:
+						self.ports.append(port)
+						break
+				self.l.release()
+				break
+		#now do actuall ping
+		p = ping.Ping(ip = ip, port = port, identifier = i, sequence = 0, ttl = 64)
+		with self.l:
+			self.ports.remove(port)
+		return p.result
 	
-	"""Function to send ICMP packet and receive answer (if one is expected).
-	
-	args:
-		ip			ip adress of target
-		inp			input message (some of messages.*) -> .pack() is used
-		outp		true if function should try to read output/return value from
-					socket
-		force_port	for usage of specific port
-		ttl			socket TTL, None meaning default
-		timeout		socket timeout
-	
-	returns:
-		output == False
-			nothing
-		
-		output == True
-			tuple (response packet, time it took, ip header)
-	"""
-	def do(self, packet):
-		packet.sequence = random.randrange(1, 65535)
-		packet.identifier = os.getpid()
-		if self.ttl is not None:
-			self.outs.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
-		if self.timeout is not None:
-			self.ins.settimeout(self.timeout)
-		
-		self.outs.sendto(packet.pack(), (self.ip, self.port))
-		
-		if self.output:
-			
-			s = time.time()
-			#while loop with timeout
-			while time.time() - s < self.looptime:
-				start = datetime.datetime.now()
-				try:
-					a = self.ins.recvfrom(1024)[0]
-				#packet lost, try again
-				except socket.timeout:
-					raise TimeoutException
-				end = datetime.datetime.now()
-				ip_header = ip_m.Header(a[:20])
-				outp = messages.types[a[20]]()
-				outp.unpack(a[20:])
-				
-				if (
-						(
-							#handle errors
-							type(outp) in messages.error_messages and
-							#cover not specification complient routers
-							outp.original_message is not None and
-							os.getpid() == outp.original_message.identifier and
-							packet.sequence == outp.original_message.sequence
-						)
-						or
-						(
-							#handle normal responses
-							type(outp) in messages.reply_messages and
-							os.getpid() == outp.identifier and
-							packet.sequence == outp.sequence
-						)
-					):
-					delta = end - start
-					return (outp, delta, ip_header)
-				#special dirty fix for that idiotic BitDefender Firewall
-				elif a.find(b"BitDefender Firewall Broadcast") != -1:
-					delta = end - start
-					return (outp, delta, ip_header)
-				else:
-					pass
-			
-			raise TimeoutException
-	
-	def __del__(self):
-		try:
-			self.ins.close()
-		except AttributeError:
-			pass
-		try:
-			self.outs.close()
-		except AttributeError:
-			pass
+	def do_trace(self, ip):
+		result = []
+		#get identifier for this serie of packet
+		with self.l:
+			i = self.identifier
+			self.identifier += 1
+		#get free port to use
+		while True:
+			self.l.acquire()
+			if len(self.ports) >= self.max_ports:
+				self.l.release()
+				time.sleep(0.1)
+			else:
+				port = None
+				for port in range(self.start_port, self.start_port + self.max_ports):
+					if port not in self.ports:
+						self.ports.append(port)
+						break
+				self.l.release()
+				break
+		#now do actuall trace
+		sequence = 0
+		ttl = 1
+		on = False
+		while not on and ttl < 128:
+			p = ping.Ping(ip = ip, port = port, identifier = i, sequence = sequence, ttl = ttl, repeat = 1)
+			sequence += 1
+			ttl += 1
+			on = p.result['on']
+			try:
+				result.append((p.result['responses'][0][0].source_ip, socket.gethostbyaddr(p.result['responses'][0][0].source_ip)))
+			#no PTR record
+			except socket.herror:
+				result.append((p.result['responses'][0][0].source_ip, None))
+			#no response from this step, ignore, useless for traceroute
+			except IndexError:
+				pass
+		with self.l:
+			self.ports.remove(port)
+		result = {
+			'ip': ip,
+			'steps': result
+		}
+		return result
 
