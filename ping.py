@@ -3,6 +3,8 @@ import socket
 from . import messages
 from . import ip as ip_m
 
+icmp = socket.getprotobyname('icmp')
+
 class Ping:
 	
 	def __init__(self, ip, port, identifier, sequence, ttl, timeout = 5, repeat = 4, sleep = 0.25):
@@ -44,8 +46,8 @@ class Ping:
 		result = {'error': None}
 		
 		#create sockets
-		ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
-		outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+		ins = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
+		outs = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
 		#bind and set timeout for IN socket
 		ins.bind(("", port))
 		ins.settimeout(timeout)

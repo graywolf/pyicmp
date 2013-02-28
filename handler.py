@@ -16,6 +16,7 @@ class Handler:
 		self.start_port = port
 	
 	def do_ping(self, ip, ttl = 64):
+		ip = str(ip)
 		#get identifier for this serie of packet
 		with self.l:
 			i = self.identifier
@@ -41,6 +42,7 @@ class Handler:
 		return p.result
 	
 	def do_trace(self, ip):
+		ip = str(ip)
 		result = []
 		#get identifier for this serie of packet
 		with self.l:
@@ -70,7 +72,7 @@ class Handler:
 			ttl += 1
 			on = p.result['on']
 			try:
-				result.append((p.result['responses'][0][0].source_ip, socket.gethostbyaddr(p.result['responses'][0][0].source_ip)))
+				result.append((p.result['responses'][0][0].source_ip, socket.gethostbyaddr(p.result['responses'][0][0].source_ip)[0]))
 			#no PTR record
 			except socket.herror:
 				result.append((p.result['responses'][0][0].source_ip, None))
@@ -81,6 +83,7 @@ class Handler:
 			self.ports.remove(port)
 		result = {
 			'ip': ip,
+			'reached': not ttl == 128,
 			'steps': result
 		}
 		return result
