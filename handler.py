@@ -36,7 +36,7 @@ class Handler:
 				self.l.release()
 				break
 		#now do actuall ping
-		p = ping.Ping(ip = ip, port = port, identifier = i, sequence = 0, ttl = 64)
+		p = ping.Ping(ip = ip, port = port, identifier = i, sequence = 0, ttl = 64, repeat = 2)
 		with self.l:
 			self.ports.remove(port)
 		return p.result

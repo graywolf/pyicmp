@@ -3,7 +3,7 @@ import socket
 
 """IP Header
 
-Representation of IP Header object"""
+Representation of IP Header object, code is pretty self-explanatory."""
 class Header:
 	
 	"""Takes data (packed ip header) as optional argument"""
